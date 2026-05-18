@@ -1,0 +1,37 @@
+image:
+  repository: docker.io/amitbbd/keycloak
+  tag: 26.2.2
+  pullPolicy: IfNotPresent
+replicaCount: 1
+service:
+  type: ClusterIP
+  port: 8090
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "500m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+externalDatabase:
+  host: "postgres.auth-system.svc.cluster.local"
+  port: 5432
+  database: "keycloak"
+  user: "keycloak_user"
+  secretName: "keycloak-db-secret"
+  secretKey: "password"
+admin:
+  user: "admin"
+  secretName: "keycloak-admin-secret"
+  secretKey: "admin-password"
+hostname: "keycloak.pam.local"
+proxyHeaders: "xforwarded"
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity: {}

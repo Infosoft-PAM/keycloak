@@ -1,0 +1,23 @@
+# Secrets
+*.key
+*.pem
+.env
+secrets/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Helm
+*.tgz
+charts/
