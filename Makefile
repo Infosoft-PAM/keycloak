@@ -1,54 +1,68 @@
-# ═══════════════════════════════════════════════════════════════
-# Keycloak Helm — Makefile
-# Package & Push to OCI Registry
-# ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# Makefile — PAM Web UI build, push, and deploy automation
+# ═══════════════════════════════════════════════════════════════════════════════
 
-CHART_NAME    := $(shell grep '^name:' Chart.yaml | awk '{print $$2}')
-CHART_VERSION := $(shell grep '^version:' Chart.yaml | awk '{print $$2}')
-DOCKER_HUB_USER := amitbbd
-REGISTRY_URL := registry-1.docker.io
-OCI_REPO := oci://$(REGISTRY_URL)/$(DOCKER_HUB_USER)
+# ─── Variables (override from CLI: make build IMAGE_REGISTRY=myregistry.io) ──
+DOCKER_USER := amitbbd
+DOCKER_PASSWORD := [PASSWORD]
+IMAGE_REGISTRY ?= docker.io/$(DOCKER_USER)
+NAMESPACE      ?= pam
+HELM_RELEASE   ?= pam-keycloak
+HELM_CHART_DIR := .
+DIST_DIR       := ./dist
+CHART_NAME     := $(shell grep '^name:' $(HELM_CHART_DIR)/Chart.yaml | awk '{print $$2}')
+CHART_VERSION  := $(shell grep '^version:' $(HELM_CHART_DIR)/Chart.yaml | awk '{print $$2}')
+
+# Full image reference
+.DEFAULT_GOAL := help
+
+# ─── Help ─────────────────────────────────────────────────────────────────────
+.PHONY: help
+help: ## Show this help message
+	@echo ""
+	@echo "  PAM Keycloak — helm chart build"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "  Variables (current values):"
+	@echo "    REGISTRY  = $(REGISTRY)"
+	@echo "    NAMESPACE = $(NAMESPACE)"
+	@echo ""
+
+# ─── Lint ─────────────────────────────────────────────────────────────────────
+.PHONY: helm-lint
+helm-lint: ## Lint the Helm chart
+	@echo "→ Linting Helm chart $(HELM_CHART_DIR)"
+	helm lint $(HELM_CHART_DIR) --strict
+	@echo "✓ Helm lint passed"
+
+# ─── Package ──────────────────────────────────────────────────────────────────
+.PHONY: helm-package
+helm-package: helm-lint ## Package the Helm chart into dist/
+	@mkdir -p $(DIST_DIR)
+	@echo "→ Packaging helm chart into $(DIST_DIR)/"
+	helm package $(HELM_CHART_DIR) -d $(DIST_DIR)
+	@echo "✓ Helm package complete"
+
+# ----- helm push -----------------------
+.PHONY: helm-push
+helm-push: helm-package ## Push the Helm chart to the repository
+	@echo "→ Pushing Helm chart $(DIST_DIR)/$(CHART_NAME)-$(CHART_VERSION).tgz to repository"
+	helm push $(DIST_DIR)/$(CHART_NAME)-$(CHART_VERSION).tgz oci://registry-1.docker.io/$(DOCKER_USER)
+	@rm $(DIST_DIR)/$(CHART_NAME)-$(CHART_VERSION).tgz
+	@echo "✓ Helm push complete"
 
 
-# ─── Colors ───────────────────────────────────────────────────
-BLUE   := \033[36m
-GREEN  := \033[32m
-YELLOW := \033[33m
-RESET  := \033[0m
+# ─── Diff (requires helm-diff plugin) ────────────────────────────────────────
+.PHONY: helm-diff
+helm-diff: ## Show diff of pending Helm changes
+	helm diff upgrade $(HELM_RELEASE) $(HELM_CHART_DIR) \
+		--namespace $(NAMESPACE) \
+		--set image.repository=$(IMAGE_REGISTRY)/$(IMAGE_NAME) \
+		--set image.tag=$(IMAGE_TAG)
 
-.PHONY: all lint package push clean help
-
-help: ## Show available targets
-	@echo "$(BLUE)Keycloak Helm — Available targets:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-12s$(RESET) %s\n", $$1, $$2}'
-
-all: lint package push
-
-lint: ## Lint Helm chart
-	@echo "$(BLUE)==> Linting Helm chart...$(RESET)"
-	@helm lint .
-	@echo "$(GREEN)✓ Lint passed$(RESET)"
-
-package: ## Package Helm chart
-	@echo "$(BLUE)==> Packaging Helm chart...$(RESET)"
-	@helm package .
-	@echo "$(GREEN)✓ Packaged: $(CHART_NAME)-$(CHART_VERSION).tgz$(RESET)"
-
-push: ## Push to OCI registry
-	@echo "$(BLUE)==> Pushing to $(OCI_PATH)...$(RESET)"
-	@helm push $(CHART_NAME)-$(CHART_VERSION).tgz $(OCI_REPO)
-	@rm $(CHART_NAME)-$(CHART_VERSION).tgz
-	@echo "$(GREEN)✓ Pushed: $(OCI_PATH)/$(CHART_NAME):$(CHART_VERSION)$(RESET)"
-
-clean: ## Remove packaged tgz files
-	@echo "$(BLUE)==> Cleaning...$(RESET)"
-	@rm -f $(CHART_NAME)-*.tgz
-	@echo "$(GREEN)✓ Cleaned$(RESET)"
-
-login: ## Login to Docker registry (interactive)
-	@echo "$(BLUE)==> Logging in to $(REGISTRY)...$(RESET)"
-	@helm registry login $(REGISTRY)
-
-logout: ## Logout from Docker registry
-	@echo "$(BLUE)==> Logging out from $(REGISTRY)...$(RESET)"
-	@helm registry logout $(REGISTRY)
+# ─── All ──────────────────────────────────────────────────────────────────────
+.PHONY: all
+all: helm-package helm-push
+	@echo "✓ All targets complete."

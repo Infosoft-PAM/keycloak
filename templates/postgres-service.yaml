@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pam-postgres
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.global.postgresPort }}
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    app.kubernetes.io/name: postgres

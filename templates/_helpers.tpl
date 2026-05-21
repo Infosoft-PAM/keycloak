@@ -1,28 +1,15 @@
-{{- define "keycloak.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- define "keycloak.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- define "keycloak.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- define "keycloak.labels" -}}
-helm.sh/chart: {{ include "keycloak.chart" . }}
-{{ include "keycloak.selectorLabels" . }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-{{- define "keycloak.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "keycloak.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: iam
-{{- end }}
+{{/*
+Client secret used all places
+*/}}
+{{- define "keycloak.secret.clientSecret" -}}
+{{- if .Values.global.secret.clientSecret -}}
+    {{- .Values.global.secret.clientSecret | b64enc -}}
+{{- else -}}
+    {{- $secret := lookup "v1" "Secret" .Values.global.namespace .Values.global.secret.name -}}
+    {{- if $secret -}}
+        {{- index $secret.data "client-secret" -}}
+    {{- else -}}
+        {{- randAlphaNum 32 | b64enc -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}

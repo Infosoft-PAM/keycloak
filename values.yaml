@@ -1,37 +1,52 @@
-image:
-  repository: docker.io/amitbbd/keycloak
-  tag: 26.2.2
-  pullPolicy: IfNotPresent
-replicaCount: 1
-service:
-  type: ClusterIP
-  port: 8090
-resources:
-  requests:
-    memory: "512Mi"
-    cpu: "500m"
-  limits:
-    memory: "1Gi"
-    cpu: "1000m"
-externalDatabase:
-  host: "postgres.auth-system.svc.cluster.local"
-  port: 5432
-  database: "keycloak"
-  user: "keycloak_user"
-  secretName: "keycloak-db-secret"
-  secretKey: "password"
-admin:
-  user: "admin"
-  secretName: "keycloak-admin-secret"
-  secretKey: "admin-password"
-hostname: "keycloak.pam.local"
-proxyHeaders: "xforwarded"
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 3
-  targetCPUUtilizationPercentage: 70
-  targetMemoryUtilizationPercentage: 80
-nodeSelector: {}
-tolerations: []
-affinity: {}
+global:
+  postgresHost: "pam-postgres"
+  postgresPort: 5432
+  namespace: "pam"
+  secret:
+    enabled: true
+    name: keycloak-secrets
+    postgresDb: "a2V5Y2xvYWtfZGI="
+    postgresUser: "a2V5Y2xvYWtfZGJfdXNlcg=="
+    postgresPassword: "c2VjdXJlQCNyb290"
+    keycloakAdminPassword: "YWRtaW4xMjM="
+
+postgres:
+  image:
+    repository: "docker.io/amitbbd/postgres"
+    tag: "16.4"
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    size: 8Gi
+  backup:
+    persistence:
+      size: 10Gi
+    schedule: "0 2 * * *" # Daily at 2 AM
+    retentionDays: 7
+  databases:
+    - keycloak
+    - app_db
+
+keycloak:
+  enabled: true
+  image:
+    repository: "docker.io/amitbbd/keycloak"
+    tag: "26.2.2"
+    pullPolicy: IfNotPresent
+  service:
+    port: 8090
+  
+
+keycloakRealm:
+  realm: pam-realm
+  enabled: true
+  users:
+    - username: admin
+      enabled: true
+      credentials:
+        - type: password
+          value: "admin"
+  clients:
+    - clientId: pam-client
+      enabled: true
+      publicClient: true

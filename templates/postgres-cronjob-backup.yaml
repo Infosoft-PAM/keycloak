@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app.kubernetes.io/name: postgres-backup
+spec:
+  schedule: "{{ .Values.postgres.backup.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: backup
+              image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  # Run pg_dumpall to backup all databases
+                  DATE=$(date +%Y%m%d%H%M)
+                  export PGPASSWORD=$POSTGRES_PASSWORD
+                  pg_dumpall -h pam-postgres -U postgres > /backup/backup_${DATE}.sql
+                  # Delete backups older than retentionDays
+                  find /backup -type f -name "*.sql" -mtime +{{ .Values.postgres.backup.retentionDays }} -exec rm {} \;
+              env:
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.global.secret.name }}
+                      key: postgres-password
+              volumeMounts:
+                - name: backup-vol
+                  mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-vol
+            {{- if .Values.postgres.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: postgres-backup
+            {{- else }}
+              emptyDir: {}
+            {{- end }}
