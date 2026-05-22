@@ -4,13 +4,13 @@ metadata:
   name: keycloak-route
 spec:
   parentRefs:
-  - name: envoy-gateway
-    namespace: envoy-gateway-system
+  - name: pam-gateway
+    namespace: pam
   rules:
   - matches:
     - path:
         type: PathPrefix
-        value: /
+        value: /keycloak
     backendRefs:
     - name: pam-keycloak
       port: 8090

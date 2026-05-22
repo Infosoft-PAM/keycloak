@@ -5,5 +5,218 @@ metadata:
   labels:
     app.kubernetes.io/name: keycloak
 data:
-  realm.json: |
-    {{ .Values.keycloakRealm | toJson }}
+  system-realm.json: |
+    {
+      "realm": "system",
+      "enabled": true,
+      "displayName": "System",
+      "displayNameHtml": "<strong>System</strong>",
+      "sslRequired": "external",
+      "registrationAllowed": false,
+      "registrationEmailAsUsername": false,
+      "rememberMe": true,
+      "verifyEmail": true,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "maxFailureWaitSeconds": 900,
+      "minimumQuickLoginWaitSeconds": 60,
+      "waitIncrementSeconds": 60,
+      "quickLoginCheckMilliSeconds": 1000,
+      "maxDeltaTimeSeconds": 43200,
+      "failureFactor": 5,
+      "attributes": {
+        "userProfileEnabled": "true"
+      },
+      "requiredActions": [
+        {
+          "alias": "CONFIGURE_TOTP",
+          "name": "Configure OTP",
+          "providerId": "CONFIGURE_TOTP",
+          "enabled": true,
+          "defaultAction": false,
+          "priority": 10,
+          "config": {}
+        },
+        {
+          "alias": "terms_and_conditions",
+          "name": "Terms and Conditions",
+          "providerId": "terms_and_conditions",
+          "enabled": true,
+          "defaultAction": true,
+          "priority": 20,
+          "config": {}
+        },
+        {
+          "alias": "UPDATE_PASSWORD",
+          "name": "Update Password",
+          "providerId": "UPDATE_PASSWORD",
+          "enabled": true,
+          "defaultAction": true,
+          "priority": 30,
+          "config": {}
+        },
+        {
+          "alias": "UPDATE_PROFILE",
+          "name": "Update Profile",
+          "providerId": "UPDATE_PROFILE",
+          "enabled": true,
+          "defaultAction": false,
+          "priority": 40,
+          "config": {}
+        },
+        {
+          "alias": "VERIFY_EMAIL",
+          "name": "Verify Email",
+          "providerId": "VERIFY_EMAIL",
+          "enabled": true,
+          "defaultAction": true,
+          "priority": 50,
+          "config": {}
+        }
+      ],
+      "passwordPolicy": "length(8) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername(undefined) and notEmail(undefined) and hashIterations(27500)",
+      "roles": {
+        "realm": [
+          {
+            "name": "system-admin",
+            "description": "Full system access and control",
+            "composites": {
+              "client": {
+                "realm-management": ["realm-admin"]
+              }
+            }
+          },
+          {
+            "name": "operator",
+            "description": "Day-to-day operations and monitoring",
+            "composites": {
+              "client": {
+                "realm-management": [
+                  "manage-users",
+                  "query-users",
+                  "query-groups",
+                  "query-clients",
+                  "query-realms",
+                  "view-users",
+                  "view-realm",
+                  "view-clients",
+                  "view-events",
+                  "view-identity-providers"
+                ]
+              }
+            }
+          },
+          {
+            "name": "viewer",
+            "description": "Read-only access to system data",
+            "composites": {
+              "client": {
+                "realm-management": [
+                  "view-users",
+                  "view-realm",
+                  "view-clients",
+                  "view-events",
+                  "view-identity-providers",
+                  "view-authorization"
+                ]
+              }
+            }
+          },
+          {
+            "name": "auditor",
+            "description": "Security audit and compliance access"
+          }
+        ]
+      },
+      "users": [
+        {
+          "username": "admin",
+          "enabled": true,
+          "emailVerified": true,
+          "firstName": "Admin",
+          "lastName": "System",
+          "email": "",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "Admin@123",
+              "temporary": true
+            }
+          ],
+          "requiredActions": [
+            "UPDATE_PASSWORD",
+            "VERIFY_EMAIL",
+            "terms_and_conditions"
+          ],
+          "realmRoles": ["system-admin"]
+        }
+      ],
+      "clients": [
+        {
+          "clientId": "web-console",
+          "name": "Web Console",
+          "description": "Customer facing web application",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "web-console-secret-change-me",
+          "redirectUris": ["/*"],
+          "webOrigins": ["/*"],
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": false,
+          "publicClient": true,
+          "protocol": "openid-connect",
+          "attributes": {
+            "pkce.code.challenge.method": "S256"
+          }
+        },
+        {
+          "clientId": "api-service",
+          "name": "API Service",
+          "description": "Backend API authentication",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "api-service-secret-change-me",
+          "redirectUris": [],
+          "webOrigins": [],
+          "standardFlowEnabled": false,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": false,
+          "serviceAccountsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "attributes": {
+            "token.endpoint.auth.signing.alg": "RS256"
+          }
+        },
+        {
+          "clientId": "mobile-app",
+          "name": "Mobile Application",
+          "description": "Mobile client for end users",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "mobile-app-secret-change-me",
+          "redirectUris": ["com.yourcompany.app://callback"],
+          "webOrigins": [],
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": false,
+          "publicClient": true,
+          "protocol": "openid-connect",
+          "attributes": {
+            "pkce.code.challenge.method": "S256"
+          }
+        }
+      ],
+      "browserFlow": "browser",
+      "registrationFlow": "registration",
+      "directGrantFlow": "direct grant",
+      "resetCredentialsFlow": "reset credentials",
+      "clientAuthenticationFlow": "clients",
+      "dockerAuthenticationFlow": "docker auth"
+    }

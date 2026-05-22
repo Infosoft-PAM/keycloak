@@ -8,7 +8,7 @@ global:
     postgresDb: "a2V5Y2xvYWtfZGI="
     postgresUser: "a2V5Y2xvYWtfZGJfdXNlcg=="
     postgresPassword: "c2VjdXJlQCNyb290"
-    keycloakAdminPassword: "YWRtaW4xMjM="
+    keycloakAdminPassword: "QWRtaW5AMTIzCg=="
 
 postgres:
   image:
@@ -35,18 +35,3 @@ keycloak:
     pullPolicy: IfNotPresent
   service:
     port: 8090
-  
-
-keycloakRealm:
-  realm: pam-realm
-  enabled: true
-  users:
-    - username: admin
-      enabled: true
-      credentials:
-        - type: password
-          value: "admin"
-  clients:
-    - clientId: pam-client
-      enabled: true
-      publicClient: true
