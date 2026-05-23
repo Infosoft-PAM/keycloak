@@ -147,61 +147,21 @@ data:
             }
           ],
           "requiredActions": [
-            "UPDATE_PASSWORD",
-            "VERIFY_EMAIL",
-            "terms_and_conditions"
+            "UPDATE_PASSWORD"
           ],
           "realmRoles": ["system-admin"]
         }
       ],
       "clients": [
         {
-          "clientId": "web-console",
-          "name": "Web Console",
-          "description": "Customer facing web application",
-          "enabled": true,
-          "clientAuthenticatorType": "client-secret",
-          "secret": "web-console-secret-change-me",
-          "redirectUris": ["/*"],
-          "webOrigins": ["/*"],
-          "standardFlowEnabled": true,
-          "implicitFlowEnabled": false,
-          "directAccessGrantsEnabled": true,
-          "serviceAccountsEnabled": false,
-          "publicClient": true,
-          "protocol": "openid-connect",
-          "attributes": {
-            "pkce.code.challenge.method": "S256"
-          }
-        },
-        {
           "clientId": "api-service",
           "name": "API Service",
-          "description": "Backend API authentication",
+          "description": "API Service",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "api-service-secret-change-me",
-          "redirectUris": [],
-          "webOrigins": [],
-          "standardFlowEnabled": false,
-          "implicitFlowEnabled": false,
-          "directAccessGrantsEnabled": false,
-          "serviceAccountsEnabled": true,
-          "publicClient": false,
-          "protocol": "openid-connect",
-          "attributes": {
-            "token.endpoint.auth.signing.alg": "RS256"
-          }
-        },
-        {
-          "clientId": "mobile-app",
-          "name": "Mobile Application",
-          "description": "Mobile client for end users",
-          "enabled": true,
-          "clientAuthenticatorType": "client-secret",
-          "secret": "mobile-app-secret-change-me",
-          "redirectUris": ["com.yourcompany.app://callback"],
-          "webOrigins": [],
+          "secret": "{{ include "keycloak.clientSecret" . }}",
+          "redirectUris": [""],
+          "webOrigins": [""],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
           "directAccessGrantsEnabled": true,
