@@ -81,55 +81,296 @@ data:
       "roles": {
         "realm": [
           {
-            "name": "system-admin",
+            "name": "superuser",
             "description": "Full system access and control",
+            "composite": true,
             "composites": {
               "client": {
-                "realm-management": ["realm-admin"]
-              }
-            }
-          },
-          {
-            "name": "operator",
-            "description": "Day-to-day operations and monitoring",
-            "composites": {
-              "client": {
-                "realm-management": [
-                  "manage-users",
-                  "query-users",
-                  "query-groups",
-                  "query-clients",
-                  "query-realms",
-                  "view-users",
-                  "view-realm",
-                  "view-clients",
-                  "view-events",
-                  "view-identity-providers"
+                "api-service": [
+                  "USER_MGMT_WRITE",
+                  "ROLE_MGMT_WRITE",
+                  "VAULT_MGMT_WRITE",
+                  "SECRET_MGMT_WRITE",
+                  "POLICY_MGMT_WRITE",
+                  "INTEGRATION_MGMT_WRITE",
+                  "AUDIT_MGMT_WRITE",
+                  "SYSTEM_MGMT_WRITE"
                 ]
               }
             }
           },
           {
-            "name": "viewer",
-            "description": "Read-only access to system data",
+            "name": "security_administrator",
+            "description": "Security, compliance and policy management",
+            "composite": true,
             "composites": {
               "client": {
-                "realm-management": [
-                  "view-users",
-                  "view-realm",
-                  "view-clients",
-                  "view-events",
-                  "view-identity-providers",
-                  "view-authorization"
+                "api-service": [
+                  "USER_MGMT_READ",
+                  "ROLE_MGMT_READ",
+                  "VAULT_MGMT_READ",
+                  "POLICY_MGMT_WRITE",
+                  "INTEGRATION_MGMT_READ",
+                  "AUDIT_MGMT_WRITE",
+                  "SYSTEM_MGMT_READ"
+                ]
+              }
+            }
+          },
+          {
+            "name": "vault_admin",
+            "description": "Manages vaults, secrets and user access",
+            "composite": true,
+            "composites": {
+              "client": {
+                "api-service": [
+                  "USER_MGMT_WRITE",
+                  "ROLE_MGMT_READ",
+                  "VAULT_MGMT_WRITE",
+                  "SECRET_MGMT_WRITE",
+                  "INTEGRATION_MGMT_READ",
+                  "AUDIT_MGMT_READ"
+                ]
+              }
+            }
+          },
+          {
+            "name": "user_manager",
+            "description": "User lifecycle management",
+            "composite": true,
+            "composites": {
+              "client": {
+                "api-service": [
+                  "USER_MGMT_WRITE",
+                  "ROLE_MGMT_READ",
+                  "VAULT_MGMT_READ"
                 ]
               }
             }
           },
           {
             "name": "auditor",
-            "description": "Security audit and compliance access"
+            "description": "Read-only access for compliance and audit",
+            "composite": true,
+            "composites": {
+              "client": {
+                "api-service": [
+                  "USER_MGMT_READ",
+                  "ROLE_MGMT_READ",
+                  "VAULT_MGMT_READ",
+                  "SECRET_MGMT_READ",
+                  "POLICY_MGMT_READ",
+                  "INTEGRATION_MGMT_READ",
+                  "AUDIT_MGMT_WRITE",
+                  "SYSTEM_MGMT_READ"
+                ]
+              }
+            }
+          },
+          {
+            "name": "end_user",
+            "description": "Standard user with basic access",
+            "composite": true,
+            "composites": {
+              "client": {
+                "api-service": [
+                  "USER_MGMT_READ",
+                  "SECRET_MGMT_READ",
+                  "SECRET_MGMT_WRITE"
+                ]
+              }
+            }
           }
-        ]
+        ],
+        "client": {
+          "api-service": [
+            {
+              "name": "USER_MGMT_WRITE",
+              "description": "Create, update, delete, lock, unlock users",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "manage-users"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "USER_MGMT_READ",
+              "description": "View and search users",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-users",
+                    "query-users"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "ROLE_MGMT_WRITE",
+              "description": "Create, update, delete realm roles",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "manage-clients"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "ROLE_MGMT_READ",
+              "description": "View and list realm roles",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-clients",
+                    "query-clients"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "VAULT_MGMT_WRITE",
+              "description": "Create, update, delete folders/safes",
+              "composite": false,
+              "clientRole": true
+            },
+            {
+              "name": "VAULT_MGMT_READ",
+              "description": "View folders/safes",
+              "composite": false,
+              "clientRole": true
+            },
+            {
+              "name": "SECRET_MGMT_WRITE",
+              "description": "Manage accounts, retrieve passwords",
+              "composite": false,
+              "clientRole": true
+            },
+            {
+              "name": "SECRET_MGMT_READ",
+              "description": "View accounts and connect",
+              "composite": false,
+              "clientRole": true
+            },
+            {
+              "name": "POLICY_MGMT_WRITE",
+              "description": "Update password policy, session policy, token lifespan",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "manage-realm"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POLICY_MGMT_READ",
+              "description": "View password policy and session settings",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-realm",
+                    "query-realms"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "INTEGRATION_MGMT_WRITE",
+              "description": "Configure SAML, Entra ID, LDAP",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "manage-identity-providers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "INTEGRATION_MGMT_READ",
+              "description": "View identity provider configurations",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-identity-providers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "AUDIT_MGMT_WRITE",
+              "description": "View, export and manage audit logs",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-events",
+                    "manage-events"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "AUDIT_MGMT_READ",
+              "description": "View audit logs and active sessions",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-events"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "SYSTEM_MGMT_WRITE",
+              "description": "Update system settings and perform backups",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "manage-realm"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "SYSTEM_MGMT_READ",
+              "description": "View system settings and configuration",
+              "composite": true,
+              "clientRole": true,
+              "composites": {
+                "client": {
+                  "realm-management": [
+                    "view-realm",
+                    "query-realms"
+                  ]
+                }
+              }
+            }
+          ]
+        }
       },
       "users": [
         {
@@ -149,7 +390,9 @@ data:
           "requiredActions": [
             "UPDATE_PASSWORD"
           ],
-          "realmRoles": ["system-admin"]
+          "realmRoles": [
+            "superuser"
+          ]
         }
       ],
       "clients": [

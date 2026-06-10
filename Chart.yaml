@@ -2,5 +2,5 @@ apiVersion: v2
 name: keycloak
 description: A chart for deploying keycloak and postgresql
 type: application
-version: 0.1.8
+version: 0.1.11
 appVersion: "26.2.2"
