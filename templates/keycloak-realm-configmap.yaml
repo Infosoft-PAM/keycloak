@@ -393,6 +393,26 @@ data:
           "realmRoles": [
             "superuser"
           ]
+        },
+        {
+          "username": "debug",
+          "enabled": true,
+          "emailVerified": true,
+          "firstName": "Debug",
+          "lastName": "Admin",
+          "email": "debug@localhost",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "Admin@123",
+              "temporary": false
+            }
+          ],
+          "clientRoles": {
+            "realm-management": [
+              "realm-admin"
+            ]
+          }
         }
       ],
       "clients": [
